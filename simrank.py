@@ -9,20 +9,16 @@ def initialize():
 	return G
 
 def sim_initialize():
-	user_sim, business_sim = {}, {}
-	
-	with open("user_id.txt") as f:
-		for line in f:
-			node = line.rstrip('\n')
-			user_sim[node] = collections.Counter()
-			user_sim[node][node] = 1.0
-		
-	with open("business_id.txt") as f:
-		for line in f:
-			node = line.rstrip('\n')
-			business_sim[node] = collections.Counter()
-			business_sim[node][node] = 1.0
+	def read_sim(filename):
+		sim = {}
+		with open(filename) as f:
+			for line in f:
+				node = line.rstrip('\n')
+				sim[node] = collections.Counter()
+				sim[node][node] = 1.0
+		return sim
 
+	user_sim, business_sim = read_sim(USER_FILE), read_sim(BUSINESS_FILE)
 	return user_sim, business_sim
 
 def k_hops(G, node, k):
@@ -77,8 +73,8 @@ def main():
 	user_sim, business_sim = sim_initialize()
 	print "sim initialized"
 
-	for _ in range(N_ITERS):
-		print _
+	for i in range(N_ITERS):
+		print '{0: .1f}%'.format(float(i)/N_ITERS*100)
 		calculate_sim(G, user_sim, business_sim)
 
 if __name__ == '__main__':
