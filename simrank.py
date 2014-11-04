@@ -40,14 +40,16 @@ def calculate_sim(G, user_sim, business_sim):
 		''' Calculates similarity of items in from_sim using similarity of items in to_sim.
 				Performs one part of the bipartite simrank algorithm'''
 		# For every pair of nodes
+		i = 0
+		ncombinations = len(from_sim)*(len(from_sim)-1)/2
 		for node1, node2 in itertools.combinations(from_sim, 2):
+			print_progress(i, ncombinations)
 			num = 0
 			for a in G.neighbors_iter(node1):
 				#for b in k_hops(G, a, 5):
 				for b in G.neighbors_iter(node2):
 					x, y = sorted((a, b)) #Keep only the upper half of the matrix
-					try:num += G[node1][a]['weight'] * G[node2][b]['weight'] * to_sim[x][y]
-					except Exception, e: import pdb;pdb.set_trace()
+					num += G[node1][a]['weight'] * G[node2][b]['weight'] * to_sim[x][y]
 
 			weight1 = sum(G[node1][x]['weight'] for x in G.neighbors_iter(node1))
 			weight2 = sum(G[node2][x]['weight'] for x in G.neighbors_iter(node2))
@@ -55,8 +57,15 @@ def calculate_sim(G, user_sim, business_sim):
 
 			from_sim[node1][node2] = C*num/den # Note: itertools.combinations emits in sorted order
 
+	print 'Calculating User-User Similarity...'
 	calculate(user_sim, business_sim, C1)
+	print 'Calculating Business-Business Similarity...'
 	calculate(business_sim, user_sim, C2)
+
+
+def print_progress(i, total):
+	print '{0: .1f}%'.format(float(i)/total*100)
+
 
 ########### Constants ############			
 C1 = 0.8
