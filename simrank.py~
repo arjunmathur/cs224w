@@ -59,7 +59,7 @@ def calculate_sim(G, user_sim, business_sim):
 			from_sim[node1][node2] = C*num/den # Note: itertools.combinations emits in sorted order
 		'''	
 		for node1 in sorted(from_sim):
-			for node2 in k_hops(G,node1,2):
+			for node2 in k_hops(G,node1,4):
 				num = 0
 				for a in G[node1]:
 					#for b in k_hops(G, a, 4):
