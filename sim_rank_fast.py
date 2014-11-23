@@ -5,7 +5,7 @@ import math
 import sys
 
 def initialize():
-  G = nx.read_edgelist("edges.txt", nodetype=str, data=(('weight',float),))
+  G = nx.read_edgelist("data/edges.txt", nodetype=str, data=(('weight',float),))
   # 'Uf61AA2JUGWTcxSXNoGaXg', 'xGz3WSkC96aWtqt7vE70gw'
   return G
 
