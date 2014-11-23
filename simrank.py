@@ -1,6 +1,8 @@
 import networkx as nx
 import collections
-import itertools
+import sys
+import random
+import math
 #from networkx.algorithms import bipartite	
 										
 def initialize():
@@ -37,48 +39,24 @@ def k_hops(G, node, k):
 def calculate_sim(G, user_sim, business_sim):
 	def calculate(from_sim, to_sim, C):
 		''' Calculates similarity of items in from_sim using similarity of items in to_sim.
-				Performs one part of the bipartite simrank algorithm'''
-		'''		
-		# For every pair of nodes
-		i = 0
-		for node1, node2 in itertools.combinations(from_sim, 2):
-			num = 0
-			for a in G.neighbors_iter(node1):
-				#for b in k_hops(G, a, 4):
-				for b in G.neighbors_iter(node2):
-					x, y = sorted((a, b)) #Keep only the upper half of the matrix
-					print x,y
-
-			weight1 = sum(G[node1][x]['weight'] for x in G.neighbors_iter(node1))
-			#weight2 = sum(G[node2][x]['weight'] for x in G.neighbors_iter(node2))
-			weight2 = sum([sum([G[node2][x]['weight'] for x in k_hops(G, y, 5)]) for y in G.neighbors_iter(node1)])
-			den = weight1*weight2
-
-			from_sim[node1][node2] = C*num/den # Note: itertools.combinations emits in sorted order
-		'''	
-		for node1 in sorted(from_sim):
-			print 'Node: ', node1, 'of', len(from_sim)
-			k_neighbors = k_hops(G, node1, 2)
-			for i, node2 in enumerate(k_neighbors):
-				print_progress(i, len(k_neighbors))
-			
+				Performs one part of the bipartite simrank algorithm'''	
+		for i, node1 in enumerate(sorted(from_sim)):
+			#print_progress(i, len(from_sim))
+			print i, 'of', len(from_sim)
+			for node2 in k_hops(G, node1, 2):
+				#print_progress(j, len(k_neighbors))
 				num = 0
 				for a in G[node1]:
 					#for b in k_hops(G, a, 4):
 					for b in G[node2]:
 						x, y = sorted((a, b)) #Keep only the upper half of the matrix
-						print x,y
-						#try:
+						if to_sim[x][y] == 0: continue
 						num += G[node1][a]['weight'] * G[node2][b]['weight'] * to_sim[x][y]
-						#except Exception, e: import pdb;pdb.set_trace()
-
+						
 				weight1 = sum(G[node1][x]['weight'] for x in G.neighbors_iter(node1))
 				weight2 = sum(G[node2][x]['weight'] for x in G.neighbors_iter(node2))
-				#weight2 = sum([sum([G[node2][x]['weight'] for x in k_hops(G, y, 5)]) for y in G.neighbors_iter(node1)])
 				den = weight1*weight2
-
 				from_sim[min(node1,node2)][max(node1,node2)] = C*num/den # Note: itertools.combinations emits in sorted order
-
 
 	print 'Calculating User-User Similarity...'
 	calculate(user_sim, business_sim, C1)
@@ -87,7 +65,9 @@ def calculate_sim(G, user_sim, business_sim):
 
 
 def print_progress(i, total):
-	print '{0: .1f}%'.format(float(i)/total*100)
+	sys.stdout.write('\r')
+	sys.stdout.write('{0: .1f}%'.format(float(i)/total*100))
+	sys.stdout.flush()
 
 
 ########### Constants ############			
@@ -109,5 +89,5 @@ def main():
 		print 'Iteration: ', i
 		calculate_sim(G, user_sim, business_sim)
 
-if __name__ == '__main__':
-	main()
+# if __name__ == '__main__':
+# 	main()
