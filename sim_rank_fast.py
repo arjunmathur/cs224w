@@ -3,6 +3,8 @@ import collections
 import random
 import math
 import sys
+import pickle
+
 
 def initialize():
   G = nx.read_edgelist("data/edges.txt", nodetype=str, data=(('weight',float),))
@@ -21,7 +23,7 @@ C = 0.8   # Discount factor
 D = 1-C   # The diagonal value of matrix D
 Q = 5     # Number of indexing Random Walkers
 P = 10    # Number of preprocessing iters
-theta = .1 # Upper bound threshold
+theta = .005 # Upper bound threshold
 #################################################
 
 class SimRankFast(object):
@@ -57,6 +59,32 @@ class SimRankFast(object):
     result *= D/(R*R)
     return result
 
+  def single_pair_corrected(self, u, v, R):
+    '''Single pair similarity'''
+    # Initialize our random walkers
+    u_positions = [u]*R
+    v_positions = [v]*R
+    
+    ct = 1 #C^t
+
+    result = 0
+    for t in range(T):
+      u_counts = collections.Counter(u_positions)
+      v_counts = collections.Counter(v_positions)
+      for w in set(u_positions) & set(v_positions):
+        alpha = u_counts[w]
+        beta = v_counts[w]
+        Dww = 1 - self.single_pair(w, w, 100)
+        result += alpha*beta*ct*Dww # Equation (14) 
+
+      self.random_step(u_positions)
+      self.random_step(v_positions)
+
+      ct *= C
+
+    result /= (R*R)
+    return result
+
   def Indexing(self):
     '''Preprocessing step'''
     index = {}
@@ -67,7 +95,7 @@ class SimRankFast(object):
         W = [self.random_walk(u, T) for _ in range(Q+1)]
         for t in range(T):
           v = W[0][t]
-          n_occurs = 0 # TODO: Is this correct?
+          n_occurs = 0
           for j in range(1, Q+1):
             if W[j][t] == v:
               n_occurs += 1
@@ -76,6 +104,20 @@ class SimRankFast(object):
                 break
 
     self.index = index
+
+
+  def k_hops(self, node, k):
+    '''Calculates all nodes within k edges from @node
+       that are on the same part of a bipartite graph'''
+    result = set([])
+    seen = set([node])
+    search = set([node])
+    for i in range(k):
+      search = set([nbr for n in search for nbr in self.G.neighbors(n) if nbr not in seen])
+      seen |= search
+      if i%2 == 1: result |= search # Ensure we get only one part of the bipartite graph
+
+    return result
 
   def prune(self, u, S):
     result = []
@@ -90,11 +132,14 @@ class SimRankFast(object):
 
   def Query(self, u):
     s = {} # s[v] = s(u,v)
-    S = [v for v in self.index[u] if u in self.index[v]] # TODO: correct?
+    #S = [v for v in self.index[u] if (self.index[u] & self.index[v])]
+    u_khops = self.k_hops(u, 2)
+    S = [v for v in u_khops if (u_khops & self.k_hops(v, 2))]
+    print len(S)
     S = self.prune(u, S)
     for v in S:
       if self.single_pair(u, v, 10) >= theta:
-        s[v] = self.single_pair(u, v, 100)
+        s[v] = self.single_pair(u, v, 1000)
     
     # return [(most_similar_id, sim),... ,(least_similar_id, sim)]
     return sorted(s.items(), reverse=True, key=lambda tup: tup[1])
@@ -164,6 +209,8 @@ print 'Initialized'
 #G = nx.Graph([(1, 4), (1, 5), (1, 6), (2, 4), (2, 5), (3, 6)])
 Sim = SimRankFast(G)
 print 'Indexing...'
-Sim.Indexing()
+#Sim.Indexing()
+#with open('data/edges_index.pickle', 'rb') as f:
+#  Sim.index = pickle.load(f)
 import pdb; pdb.set_trace()
 print Sim.Query(1)
