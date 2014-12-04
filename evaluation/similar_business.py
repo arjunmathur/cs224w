@@ -43,6 +43,8 @@ original = {}
 precision = {}
 recall = {}
 top_similar = {}
+f = open("precision_business.txt","w")
+f1 = open("recall_business.txt","w")
 for b in emerging:
 	print b
 	similar = Sim.Query(b)
@@ -59,4 +61,8 @@ for b in emerging:
 	precision[b] = len(tp)*1.0/len(original[b])
 	recall[b] = len(tp)*1.0/len(potential[b])
 	
+json.dump(precision, f)
+json.dump(recall, f1)
+f.close()
+f1.close()
 import pdb; pdb.set_trace()

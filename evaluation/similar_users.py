@@ -41,6 +41,9 @@ potential = {}
 original = {}
 precision = {}
 recall = {}
+f = open("precision_user.txt","w")
+f1 = open("recall_user.txt","w")
+
 for b in emerging:
 	positive[b] = [u for u in G_trim[b] if G_trim[b][u]['weight'] >= 0.8]
 	negative[b] = [u fot u in G_trim[b] if G_trim[b][u]['weight'] < 0.8]
@@ -55,5 +58,10 @@ for b in emerging:
 	tp = set(original[b]) & potential[b]
 	precision[b] = len(tp)*1.0/len(original[b])
 	recall[b] = len(tp)*1.0/len(potential[b])
-	
+
+json.dump(precision, f)
+json.dump(recall, f1)	
+f.close()
+f1.close()
+
 import pdb; pdb.set_trace()
