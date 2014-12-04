@@ -2,7 +2,7 @@ import json
 import collections
 import matplotlib.pyplot as plt
 
-f1 = open("edges_trim.txt","w")
+f1 = open("edges_trim_date.txt","w")
 f2 = open("user_id_map.txt","r")
 f3 = open("business_id_map.txt","r")
 

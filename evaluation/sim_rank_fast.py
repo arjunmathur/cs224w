@@ -6,10 +6,10 @@ import sys
 import pickle
 
 
-def initialize():
-  G = nx.read_edgelist("edges.txt", nodetype=str, data=(('weight',float),))
-  # 'Uf61AA2JUGWTcxSXNoGaXg', 'xGz3WSkC96aWtqt7vE70gw'
-  return G
+#def initialize():
+#  G = nx.read_edgelist("edges_trim.txt", nodetype=str, data=(('weight',float),))
+#  # 'Uf61AA2JUGWTcxSXNoGaXg', 'xGz3WSkC96aWtqt7vE70gw'
+#  return G
 
 def print_progress(i, total):
   sys.stdout.write('\r')
@@ -23,7 +23,7 @@ C = 0.8   # Discount factor
 D = 1-C   # The diagonal value of matrix D
 Q = 5     # Number of indexing Random Walkers
 P = 10    # Number of preprocessing iters
-theta = .005 # Upper bound threshold
+theta = .0005 # Upper bound threshold
 #################################################
 
 class SimRankFast(object):
@@ -134,7 +134,8 @@ class SimRankFast(object):
     s = {} # s[v] = s(u,v)
     #S = [v for v in self.index[u] if (self.index[u] & self.index[v])]
     u_khops = self.k_hops(u, 2)
-    S = [v for v in u_khops if (u_khops & self.k_hops(v, 2))]
+    S = u_khops
+    #S = [v for v in u_khops if (u_khops & self.k_hops(v, 2))]
     #print len(S)
     #S = self.prune(u, S)
     for v in S:
@@ -187,7 +188,7 @@ class SimRankFast(object):
   def random_step(self, nbunch): #TODO: BIPARTITE THIS
     '''Take a random step for multiple nodes in place'''
     for r in range(len(nbunch)):
-      population =  [x for x in G[nbunch[r]] for i in range(int(5*self.G[nbunch[r]][x]['weight']))]
+      population =  [x for x in self.G[nbunch[r]] for i in range(int(5*self.G[nbunch[r]][x]['weight']))]
     for r in range(len(nbunch)):
       nbunch[r] = random.choice(population) # Random step
   
@@ -203,14 +204,14 @@ class SimRankFast(object):
 
 
 
-G = initialize()
-print 'Initialized'
+#G = initialize()
+#print 'Initialized'
 #G = nx.read_edgelist("../CA-GrQc.txt", nodetype=int)
 #G = nx.Graph([(1, 4), (1, 5), (1, 6), (2, 4), (2, 5), (3, 6)])
-Sim = SimRankFast(G)
-print 'Indexing...'
+#Sim = SimRankFast(G)
+#print 'Indexing...'
 #Sim.Indexing()
 #with open('data/edges_index.pickle', 'rb') as f:
 #  Sim.index = pickle.load(f)
-import pdb; pdb.set_trace()
+#import pdb; pdb.set_trace()
 #print Sim.Query(1)

@@ -24,14 +24,15 @@ USER_FILE = 'user_id.txt'
 BUSINESS_FILE = 'business_id.txt' 
 USER_MAP = "user_id_map.txt"
 BUSINESS_MAP = "business_id_map.txt"
-k = 0.2
+k = 0.5
 ##################################
 
 G, G_trim = initialize()
-user, business = node_initialize(G)
+#user, business = node_initialize(G)
 user_trim, business_trim = node_initialize(G_trim)
 
-emerging = [x for x in business_trim if len(G_trim[x]) < 20 and len(G[x]) > 60]
+emerging = [x for x in business_trim if len(G_trim[x]) <= 20 and len([y for y in G[x] if G[x][y]['weight'] >= 0.8]) >= 60]
+print len(emerging)
 
 Sim = SimRankFast(G_trim)
 print "Sim initialized"
@@ -39,19 +40,20 @@ print "Sim initialized"
 
 potential = {}
 original = {}
-precison = {}
+precision = {}
 recall = {}
 top_similar = {}
 for b in emerging:
-	similar = sim.Query(b)
-	sample = max(10,k*len(similar))
-	top_similar[b] = similar[0:sample]
+	print b
+	similar = Sim.Query(b)
+	sample = max(20,k*len(similar))
+	top_similar[b] = similar[0:int(sample)]
 
-	potential[b] = set()
+	potential[b] = set(G_trim[b])
 	for x in top_similar[b]:
-		potential[b] |= set([u for u in G_trim[x] if G_trim[x][u]['weight'] >= 4])
+		potential[b] |= set([u for u in G_trim[x[0]] if G_trim[x[0]][u]['weight'] >= 0.8])
 	
-	original[b] = [x for x in G[b] if x not in G_trim[b] and G[b][x]['weight'] >= 4]		
+	original[b] = [x for x in G[b] if G[b][x]['weight'] >= 0.8]		
 
 	tp = set(original[b]) & potential[b]
 	precision[b] = len(tp)*1.0/len(original[b])
