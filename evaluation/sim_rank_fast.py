@@ -59,32 +59,6 @@ class SimRankFast(object):
     result *= D/(R*R)
     return result
 
-  def single_pair_corrected(self, u, v, R):
-    '''Single pair similarity'''
-    # Initialize our random walkers
-    u_positions = [u]*R
-    v_positions = [v]*R
-    
-    ct = 1 #C^t
-
-    result = 0
-    for t in range(T):
-      u_counts = collections.Counter(u_positions)
-      v_counts = collections.Counter(v_positions)
-      for w in set(u_positions) & set(v_positions):
-        alpha = u_counts[w]
-        beta = v_counts[w]
-        Dww = 1 - self.single_pair(w, w, 100)
-        result += alpha*beta*ct*Dww # Equation (14) 
-
-      self.random_step(u_positions)
-      self.random_step(v_positions)
-
-      ct *= C
-
-    result /= (R*R)
-    return result
-
   def Indexing(self):
     '''Preprocessing step'''
     index = {}
@@ -134,13 +108,13 @@ class SimRankFast(object):
     s = {} # s[v] = s(u,v)
     #S = [v for v in self.index[u] if (self.index[u] & self.index[v])]
     u_khops = self.k_hops(u, 2)
-    S = u_khops
+    S = [x for x in u_khops if len(set(self.G[x])&set(self.G[u])) >= 2]
     #S = [v for v in u_khops if (u_khops & self.k_hops(v, 2))]
     #print len(S)
     #S = self.prune(u, S)
     for v in S:
-      if self.single_pair(u, v, 10) >= theta:
-        s[v] = self.single_pair(u, v, 1000)
+      #if self.single_pair(u, v, 10) >= theta:
+      s[v] = self.single_pair(u, v, 1000)
       
     # return [(most_similar_id, sim),... ,(least_similar_id, sim)]
     return sorted(s.items(), reverse=True, key=lambda tup: tup[1])
