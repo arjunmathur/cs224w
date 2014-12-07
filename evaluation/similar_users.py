@@ -46,12 +46,12 @@ f1 = open("recall_user.txt","w")
 
 for b in emerging:
 	positive[b] = [u for u in G_trim[b] if G_trim[b][u]['weight'] >= 0.8]
-	negative[b] = [u fot u in G_trim[b] if G_trim[b][u]['weight'] < 0.8]
+	negative[b] = [u for u in G_trim[b] if G_trim[b][u]['weight'] < 0.8]
 	potential[b] = set(G_trim[b])
 	for x in positive[b]:
 		user = Sim.Query(x)
 		sample = max(10,int(k*len(user)))
-		potential[b] |= user[0:sample]
+		potential[b] |= set([x[0] for x in user[0:sample]])
 	
 	original[b] = [x for x in G[b] if G[b][x]['weight'] >= 0.8]		
 
